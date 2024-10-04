@@ -1,50 +1,49 @@
-import requests
+import ollama
+import logging
 
 class OllamaIntegration:
-    def __init__(self, model_name: str = "llama3.2", max_tokens: int = 8192):
+    def __init__(self, model_name: str = "llama3.2"):
         self.model_name = model_name
-        self.max_tokens = max_tokens
-        self.base_url = "http://localhost:11434/api"
 
-    def generate_response(self, prompt: str) -> str:
+    def generate_response(self, messages, stream: bool = False):
         try:
-            response = requests.post(
-                f"{self.base_url}/generate",
-                json={
-                    "model": self.model_name,
-                    "prompt": prompt,
-                    "stream": False,
-                    "options": {
-                        "num_predict": self.max_tokens
-                    }
-                }
-            )
+            response = ollama.chat(model=self.model_name, messages=messages, stream=stream)
             
-            if response.status_code == 200:
-                return response.json()['response'].strip()
+            if stream:
+                return self._stream_response(response)
             else:
-                return f"Error in Ollama API call: {response.status_code} - {response.text}"
+                return response['message']['content'] if isinstance(response, dict) else str(response)
         except Exception as e:
-            return f"Error in processing: {str(e)}"
+            error_msg = f"Error in Ollama API call: {str(e)}"
+            logging.error(error_msg)
+            return error_msg
+
+    def _stream_response(self, response):
+        try:
+            for chunk in response:
+                if isinstance(chunk, dict) and 'message' in chunk:
+                    content = chunk['message'].get('content', '')
+                    if content:
+                        yield content
+                elif isinstance(chunk, str):
+                    yield chunk
+        except Exception as e:
+            logging.error(f"Error in stream processing: {str(e)}")
+            yield f"Error: {str(e)}"
 
     def list_models(self) -> list:
         try:
-            response = requests.get(f"{self.base_url}/tags")
-            if response.status_code == 200:
-                return [model['name'] for model in response.json()['models']]
-            else:
-                return []
+            models = ollama.list()
+            return [model['name'] for model in models['models']]
         except Exception as e:
-            print(f"Error listing models: {str(e)}")
+            logging.error(f"Error listing models: {str(e)}")
             return []
 
     def change_model(self, new_model_name: str) -> bool:
         if new_model_name in self.list_models():
             self.model_name = new_model_name
+            logging.info(f"Model changed to {new_model_name}")
             return True
         else:
-            print(f"Model {new_model_name} not found.")
+            logging.warning(f"Model {new_model_name} not found.")
             return False
-
-    def set_max_tokens(self, max_tokens: int) -> None:
-        self.max_tokens = max_tokens

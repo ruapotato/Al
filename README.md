@@ -43,7 +43,7 @@ Al is an advanced conversational AI assistant that uses speech recognition, natu
 
 4. Install the required packages:
    ```
-   pip install torch numpy pyaudio SpeechRecognition requests onnxruntime
+   pip install torch numpy pyaudio SpeechRecognition requests onnxruntime ollama
    ```
 
 5. Install espeak on your system:
