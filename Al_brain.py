@@ -21,10 +21,6 @@ When you are asked to stop, reply with 'Okay'.
     def generate_response(self, user_input):
         logging.debug(f"Generating response for input: {user_input}")
         
-        # Clear previous conversation if the new input is significantly different
-        if self.conversation_history and not self._is_related(user_input, self.conversation_history[-1]['content']):
-            self.clear_history()
-        
         self.conversation_history.append({'role': 'user', 'content': user_input})
         
         messages = [{'role': 'system', 'content': self.system_prompt}] + self.conversation_history[-self.max_history:]
