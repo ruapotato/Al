@@ -42,7 +42,7 @@ Al is an advanced conversational AI assistant that uses speech recognition, natu
 
 4. Install the required packages:
    ```
-   pip install torch numpy pyaudio SpeechRecognition requests
+   pip install torch numpy pyaudio SpeechRecognition requests onnxruntime
    ```
 
 5. Install espeak on your system:
@@ -52,10 +52,6 @@ Al is an advanced conversational AI assistant that uses speech recognition, natu
 
 6. Install Ollama following the instructions on their [official website](https://ollama.ai/).
 
-7. Install onnxruntime for improved Voice Activity Detection:
-   ```
-   pip install onnxruntime
-   ```
 
 ## Usage
 
