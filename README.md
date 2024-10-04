@@ -16,6 +16,7 @@ Al is an advanced conversational AI assistant that uses speech recognition, natu
 - Python 3.8 or higher
 - espeak (for text-to-speech)
 - Ollama (for language model inference)
+- mic/headphones (to keep the AI from talking to itself)
 
 ## Setup
 
