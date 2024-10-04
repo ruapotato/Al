@@ -1,0 +1,2 @@
+https://github.com/gpt-omni/mini-omni (MIT License Copyright (c) 2024 gpt-omni)
+https://github.com/gpt-omni/mini-omni/blob/main/utils/assets/silero_vad.onnx
