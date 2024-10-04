@@ -21,7 +21,7 @@ Al is an advanced conversational AI assistant that uses speech recognition, natu
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/al-assistant.git
+   git clone https://github.com/ruapotato/Al.git
    cd al-assistant
    ```
 
