@@ -55,7 +55,7 @@ Al is an advanced conversational AI assistant that uses speech recognition, natu
 
 ## Usage
 
-1. Ensure Ollama is running and the desired model is available.
+1. Ensure Ollama is running and the desired model is available. (Check ollama_integration.py for what model is being used)
 
 2. Run the main script:
    ```
