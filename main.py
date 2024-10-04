@@ -17,6 +17,7 @@ class Al:
         self.is_running = False
         self.current_response_thread = None
         self.stop_event = threading.Event()
+        self.is_paused = False
 
     def run(self):
         self.is_running = True
@@ -60,16 +61,24 @@ class Al:
 
                 print(f"\nYou: {transcription}")
                 
-                # Stop any ongoing response and speech
-                self.stop_event.set()
-                self.voice.stop_speaking()
-                if self.current_response_thread and self.current_response_thread.is_alive():
-                    self.current_response_thread.join(timeout=1)
-                
-                # Reset the stop event and start a new response
-                self.stop_event.clear()
-                self.current_response_thread = threading.Thread(target=self.generate_and_stream_response, args=(transcription,))
-                self.current_response_thread.start()
+                if transcription.lower() == "paused":
+                    self.pause()
+                    continue
+                elif transcription.lower() == "resumed":
+                    self.resume()
+                    continue
+
+                if not self.is_paused:
+                    # Stop any ongoing response and speech
+                    self.stop_event.set()
+                    self.voice.stop_speaking()
+                    if self.current_response_thread and self.current_response_thread.is_alive():
+                        self.current_response_thread.join(timeout=1)
+                    
+                    # Reset the stop event and start a new response
+                    self.stop_event.clear()
+                    self.current_response_thread = threading.Thread(target=self.generate_and_stream_response, args=(transcription,))
+                    self.current_response_thread.start()
                 
             except queue.Empty:
                 pass
@@ -104,6 +113,25 @@ class Al:
             self.voice.speak(current_segment.strip())
 
         print("\n")
+
+    def pause(self):
+        if not self.is_paused:
+            self.is_paused = True
+            self.ears.pause()
+            # Stop any ongoing response and speech
+            self.stop_event.set()
+            self.voice.stop_speaking()
+            if self.current_response_thread and self.current_response_thread.is_alive():
+                self.current_response_thread.join(timeout=1)
+            logging.info("Al is paused")
+            self.voice.speak("I am now paused. Say 'Al' or 'Resume' to resume.")
+
+    def resume(self):
+        if self.is_paused:
+            self.is_paused = False
+            self.ears.resume()
+            logging.info("Al is resumed")
+            self.voice.speak("I have resumed listening.")
 
 if __name__ == "__main__":
     al = Al()

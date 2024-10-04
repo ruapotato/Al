@@ -12,6 +12,7 @@ class Al_ears:
         self.p = pyaudio.PyAudio()
         self.stream = self.p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=1024)
         self.is_running = False
+        self.is_paused = False
         logging.debug("Al_ears initialized")
 
     def listen(self):
@@ -27,7 +28,20 @@ class Al_ears:
                     try:
                         text = self.recognizer.recognize_google(audio)
                         logging.info(f"Transcription: {text}")
-                        self.transcription_queue.put(text)
+                        
+                        if self.is_paused:
+                            if "al" in text.lower() or "resume" in text.lower():
+                                self.is_paused = False
+                                self.transcription_queue.put("Resumed")
+                                if "al" in text.lower() and len(text.split()) > 1:
+                                    self.transcription_queue.put(text)
+                        else:
+                            if "pause" in text.lower():
+                                self.is_paused = True
+                                self.transcription_queue.put("Paused")
+                            else:
+                                self.transcription_queue.put(text)
+                        
                     except sr.UnknownValueError:
                         logging.warning("Speech recognition could not understand audio")
                     except sr.RequestError as e:
@@ -40,3 +54,9 @@ class Al_ears:
         self.stream.stop_stream()
         self.stream.close()
         self.p.terminate()
+
+    def pause(self):
+        self.is_paused = True
+
+    def resume(self):
+        self.is_paused = False

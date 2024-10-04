@@ -10,20 +10,22 @@ Al is an advanced conversational AI assistant that uses speech recognition, natu
 - Context-aware conversations
 - Voice Activity Detection (VAD) for improved speech recognition
 - Ability to change AI models
+- Pause and resume functionality
+- Immediate interruption of ongoing responses
 
 ## Prerequisites
 
 - Python 3.8 or higher
 - espeak (for text-to-speech)
 - Ollama (for language model inference)
-- mic/headphones (to keep the AI from talking to itself)
+- Microphone and speakers/headphones (to prevent feedback loops)
 
 ## Setup
 
 1. Clone the repository:
    ```
    git clone https://github.com/ruapotato/Al.git
-   cd al-assistant
+   cd Al
    ```
 
 2. Create a virtual environment:
@@ -53,19 +55,44 @@ Al is an advanced conversational AI assistant that uses speech recognition, natu
 
 6. Install Ollama following the instructions on their [official website](https://ollama.ai/).
 
-
 ## Usage
 
-1. Ensure Ollama is running and the desired model is available. (Check ollama_integration.py for what model is being used)
+1. Ensure Ollama is running and the desired model is available. (Check ollama_integration.py for the default model being used)
 
 2. Run the main script:
    ```
    python main.py
    ```
 
-3. Speak to Al when prompted.
+3. Speak to Al when prompted. You can:
+   - Ask questions or give commands
+   - Say "pause" to pause Al's listening and response generation
+   - Say "Al" or "resume" to resume from a paused state
+   - Use "Al [command]" to resume and immediately process a command
 
 4. Press Ctrl+C to stop the program.
+
+## Key Components
+
+- `main.py`: The main script that initializes and runs the Al assistant
+- `Al_brain.py`: Handles the conversation logic and integration with Ollama
+- `Al_ears.py`: Manages speech recognition and transcription
+- `Al_voice.py`: Handles text-to-speech output
+- `ollama_integration.py`: Integrates with the Ollama API for language model inference
+
+## Customization
+
+- To change the default AI model, modify the `model_name` parameter in the `OllamaIntegration` class initialization in `ollama_integration.py`.
+- Adjust the `max_history` parameter in `Al_brain.py` to control the conversation context length.
+
+## Troubleshooting
+
+- If you encounter audio-related errors, ensure your microphone and speakers are properly configured and recognized by your system.
+- For Ollama-related issues, check that the Ollama service is running and the desired model is available.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Acknowledgments
 
