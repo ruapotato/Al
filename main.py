@@ -311,8 +311,6 @@ class Al_ears:
         self.stream.close()
         self.p.terminate()
 
-
-
 class Al_voice:
     def __init__(self):
         # Check if espeak is installed
@@ -321,13 +319,23 @@ class Al_voice:
         except subprocess.CalledProcessError:
             logging.error("espeak is not installed. Please install it using your package manager.")
             raise SystemExit("espeak is required for text-to-speech functionality.")
+        self.current_process = None
+
+    def stop_speaking(self):
+        if self.current_process and self.current_process.poll() is None:
+            logging.debug("Terminating ongoing speech")
+            self.current_process.terminate()
+            self.current_process.wait()
+            self.current_process = None
 
     def speak(self, text):
         logging.debug(f"Speaking: {text}")
+        self.stop_speaking()  # Stop any ongoing speech
         try:
-            subprocess.run(["espeak", text], check=True)
+            self.current_process = subprocess.Popen(["espeak", text])
         except subprocess.CalledProcessError as e:
             logging.error(f"Failed to speak text: {e}")
+
 
 class Al_ears:
     def __init__(self, transcription_queue):
@@ -492,6 +500,7 @@ class Al:
     def stop(self):
         self.is_running = False
         self.ears.stop()
+        self.voice.stop_speaking()  # Ensure any ongoing speech is stopped
         logging.info("Al stopped.")
 
     def conversation_control(self):
@@ -500,6 +509,9 @@ class Al:
             try:
                 transcription = self.transcription_queue.get(timeout=0.1)
                 logging.info(f"\nUser: {transcription}")
+                
+                # Stop any ongoing speech when new input is received
+                self.voice.stop_speaking()
                 
                 if transcription.lower().startswith("change model to "):
                     model_name = transcription.lower().replace("change model to ", "").strip()
