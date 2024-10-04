@@ -508,6 +508,13 @@ class Al:
         while self.is_running:
             try:
                 transcription = self.transcription_queue.get(timeout=0.1)
+                
+                # Check if speech recognition failed
+                if transcription == "Speech recognition could not understand audio":
+                    logging.info("Speech not recognized. Waiting for next input.")
+                    self.voice.speak("I'm sorry, I didn't catch that. Could you please repeat?")
+                    continue
+                
                 logging.info(f"\nUser: {transcription}")
                 
                 # Stop any ongoing speech when new input is received
