@@ -2,22 +2,21 @@ import logging
 import queue
 import threading
 import time
-import re
 from Al_brain import Al_brain
 from Al_ears import Al_ears
 from Al_voice import Al_voice
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class Al:
     def __init__(self):
         self.transcription_queue = queue.Queue()
-        self.response_queue = queue.Queue()
         self.ears = Al_ears(self.transcription_queue)
         self.brain = Al_brain()
         self.voice = Al_voice()
         self.is_running = False
-        self.is_ready = False
+        self.current_response_thread = None
+        self.stop_event = threading.Event()
 
     def run(self):
         self.is_running = True
@@ -29,12 +28,7 @@ class Al:
         listening_thread = threading.Thread(target=self.ears.listen)
         listening_thread.start()
         
-        # Wait for initialization
-        while not self.is_ready and self.is_running:
-            time.sleep(0.1)
-        
-        if self.is_running:
-            logging.info("Al is ready and listening... (Press Ctrl+C to stop)")
+        logging.info("Al is ready and listening...")
         
         try:
             while self.is_running:
@@ -47,65 +41,70 @@ class Al:
         listening_thread.join()
 
     def stop(self):
+        logging.info("Stopping Al...")
         self.is_running = False
+        self.stop_event.set()
         self.ears.stop()
         self.voice.stop_speaking()
+        if self.current_response_thread and self.current_response_thread.is_alive():
+            self.current_response_thread.join(timeout=1)
         logging.info("Al stopped.")
 
     def conversation_control(self):
-        logging.debug("Conversation control thread started")
         while self.is_running:
             try:
                 transcription = self.transcription_queue.get(timeout=0.1)
                 
                 if transcription is None or transcription == "Speech recognition could not understand audio":
-                    continue  # Skip without saying anything
+                    continue
 
-                logging.info(f"\nUser: {transcription}")
+                print(f"\nYou: {transcription}")
                 
+                # Stop any ongoing response and speech
+                self.stop_event.set()
                 self.voice.stop_speaking()
+                if self.current_response_thread and self.current_response_thread.is_alive():
+                    self.current_response_thread.join(timeout=1)
                 
-                if transcription.lower().startswith("change model to "):
-                    model_name = transcription.lower().replace("change model to ", "").strip()
-                    response = self.brain.change_model(model_name)
-                    self.voice.speak(response)
-                elif transcription.lower() == "list models":
-                    response = self.brain.list_models()
-                    self.voice.speak(response)
-                else:
-                    response_stream = self.brain.generate_response(transcription)
-                    self.stream_response(response_stream)
+                # Reset the stop event and start a new response
+                self.stop_event.clear()
+                self.current_response_thread = threading.Thread(target=self.generate_and_stream_response, args=(transcription,))
+                self.current_response_thread.start()
                 
-                print("\n")  # New line after response
             except queue.Empty:
                 pass
-        logging.debug("Conversation control thread ended")
+
+    def generate_and_stream_response(self, transcription):
+        response_stream = self.brain.generate_response(transcription)
+        self.stream_response(response_stream)
 
     def stream_response(self, response_stream):
         full_response = ""
         current_segment = ""
 
+        print("Al: ", end="", flush=True)
+
         for chunk in response_stream:
-            if not self.is_running:
-                logging.debug("Stopping response generation because Al is no longer running")
+            if self.stop_event.is_set():
+                print("\n[Response interrupted]")
                 break
 
             full_response += chunk
             current_segment += chunk
-            logging.debug(f"Received chunk: {chunk}")
+            print(chunk, end="", flush=True)
 
-            if re.search(r'[.!?,]', chunk):
-                logging.debug(f"Speaking segment: {current_segment.strip()}")
+            if chunk.endswith(('.', '!', '?')) or len(current_segment) > 50:
+                if self.stop_event.is_set():
+                    print("\n[Response interrupted]")
+                    break
                 self.voice.speak(current_segment.strip())
-                logging.info(f"Al (partial): {current_segment.strip()}")
                 current_segment = ""
 
-        if current_segment:
-            logging.debug(f"Speaking final segment: {current_segment.strip()}")
+        if current_segment and not self.stop_event.is_set():
             self.voice.speak(current_segment.strip())
-            logging.info(f"Al (partial): {current_segment.strip()}")
 
-        logging.info(f"Al (full): {full_response.strip()}")
+        print("\n")
+
 if __name__ == "__main__":
     al = Al()
     try:
