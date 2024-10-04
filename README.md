@@ -12,6 +12,8 @@ Al is an advanced conversational AI assistant that uses speech recognition, natu
 - Ability to change AI models
 - Pause and resume functionality
 - Immediate interruption of ongoing responses
+- Clipboard content reading
+- Screen text extraction
 
 ## Prerequisites
 
@@ -34,24 +36,18 @@ Al is an advanced conversational AI assistant that uses speech recognition, natu
    ```
 
 3. Activate the virtual environment:
-   - On Windows:
-     ```
-     pyenv\Scripts\activate
-     ```
-   - On macOS and Linux:
+   - Linux:
      ```
      source pyenv/bin/activate
      ```
 
 4. Install the required packages:
    ```
-   pip install torch numpy pyaudio SpeechRecognition requests onnxruntime ollama
+   pip install torch numpy pyaudio SpeechRecognition requests onnxruntime ollama pyperclip pytesseract pillow
    ```
 
-5. Install espeak on your system:
-   - For Ubuntu/Debian: `sudo apt-get install espeak`
-   - For macOS with Homebrew: `brew install espeak`
-   - For Windows, download and install from the official website
+5. Install espeak and other system dependencies:
+   - For Ubuntu/Debian: `sudo apt-get install espeak tesseract-ocr xdotool`
 
 6. Install Ollama following the instructions on their [official website](https://ollama.ai/).
 
@@ -69,6 +65,8 @@ Al is an advanced conversational AI assistant that uses speech recognition, natu
    - Say "pause" to pause Al's listening and response generation
    - Say "Al" or "resume" to resume from a paused state
    - Use "Al [command]" to resume and immediately process a command
+   - Say "read my clipboard" to have Al read the contents of your clipboard
+   - Say "read my screen" to have Al extract and read text from your active window
 
 4. Press Ctrl+C to stop the program.
 
@@ -78,6 +76,7 @@ Al is an advanced conversational AI assistant that uses speech recognition, natu
 - `Al_brain.py`: Handles the conversation logic and integration with Ollama
 - `Al_ears.py`: Manages speech recognition and transcription
 - `Al_voice.py`: Handles text-to-speech output
+- `Al_eyes.py`: Manages clipboard reading and screen text extraction
 - `ollama_integration.py`: Integrates with the Ollama API for language model inference
 
 ## Customization
@@ -89,6 +88,7 @@ Al is an advanced conversational AI assistant that uses speech recognition, natu
 
 - If you encounter audio-related errors, ensure your microphone and speakers are properly configured and recognized by your system.
 - For Ollama-related issues, check that the Ollama service is running and the desired model is available.
+- If clipboard or screen reading fails, ensure you have the necessary permissions and that xclip and xdotool are properly installed.
 
 ## Contributing
 

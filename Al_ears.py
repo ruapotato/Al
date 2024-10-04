@@ -3,6 +3,7 @@ import speech_recognition as sr
 import numpy as np
 import logging
 import time
+from Al_eyes import Al_eyes
 
 class Al_ears:
     def __init__(self, transcription_queue):
@@ -34,13 +35,15 @@ class Al_ears:
                                 self.is_paused = False
                                 self.transcription_queue.put("Resumed")
                                 if "al" in text.lower() and len(text.split()) > 1:
-                                    self.transcription_queue.put(text)
+                                    processed_text = Al_eyes.process_keywords(text)
+                                    self.transcription_queue.put(processed_text)
                         else:
                             if "pause" in text.lower():
                                 self.is_paused = True
                                 self.transcription_queue.put("Paused")
                             else:
-                                self.transcription_queue.put(text)
+                                processed_text = Al_eyes.process_keywords(text)
+                                self.transcription_queue.put(processed_text)
                         
                     except sr.UnknownValueError:
                         logging.warning("Speech recognition could not understand audio")
