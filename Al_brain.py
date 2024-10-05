@@ -15,15 +15,26 @@ Personalize your responses based on the user's previous questions and the conver
 Do not repeat previous actions unless explicitly asked to do so.
 If a new request is made, focus on that request and do not continue with previous tasks.
 Include numbers and calculations when they are relevant to the response.
-When you are asked to stop, reply with 'Okay'.
+When you are asked to stop, reply with 'Okay'. Don't reply to old requests, only the new request.
+Pay attention to the tags <NEW_INPUT> and <OLD_INPUT>. Always prioritize and respond to the <NEW_INPUT>.
+Do not continue old stories or tasks when given a new input. Start fresh with each new input. Avoid repeats.
 """
 
     def generate_response(self, user_input):
         logging.debug(f"Generating response for input: {user_input}")
         
-        self.conversation_history.append({'role': 'user', 'content': user_input})
+        # Tag the new input
+        tagged_input = f"<NEW_INPUT>{user_input}</NEW_INPUT>"
+        self.conversation_history.append({'role': 'user', 'content': tagged_input})
         
-        messages = [{'role': 'system', 'content': self.system_prompt}] + self.conversation_history[-self.max_history:]
+        # Tag old inputs
+        tagged_history = []
+        for message in self.conversation_history[:-1]:
+            if message['role'] == 'user':
+                message['content'] = f"<OLD_INPUT>{message['content']}</OLD_INPUT>"
+            tagged_history.append(message)
+        
+        messages = [{'role': 'system', 'content': self.system_prompt}] + tagged_history[-self.max_history:] + [self.conversation_history[-1]]
         
         response_stream = self.ollama.generate_response(messages, stream=True)
         return self._process_stream(response_stream)
