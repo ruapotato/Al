@@ -16,7 +16,7 @@ class Al_voice:
             try:
                 self.stop_speaking()  # Stop any ongoing speech before starting new one
                 self.stop_event.clear()
-                self.current_process = subprocess.Popen(["espeak", text], preexec_fn=os.setsid)
+                self.current_process = subprocess.Popen(["espeak", "-p", "35", text], preexec_fn=os.setsid)
                 
                 # Wait for the process to complete or be interrupted
                 while self.current_process.poll() is None:
